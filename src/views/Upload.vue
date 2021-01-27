@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 13:52:01
+ * @LastEditTime: 2021-01-27 14:34:28
  * @LastEditors: cwx
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -16,7 +16,7 @@
       <!-- <div>计算文件 hash</div>
       <el-progress :percentage="hashPercentage"></el-progress> -->
       <div>总进度</div>
-      <el-progress :percentage="uploadPercentage"></el-progress>
+      <el-progress type="circle" :percentage="uploadPercentage"></el-progress>
     </div>
     <!-- <img alt="Vue logo" src="../assets/logo.png" />
     <HelloWorld msg="Welcome to Your Vue.js App" /> -->
@@ -24,12 +24,18 @@
 </template>
 
 <script>
-// var storeKey = "TENANTID";
-// var storage = {
-//   fetch: function() {
-//     return JSON.parse(sessionStorage.getItem(storeKey) || "NOTENANTID");
-//   }
-// };
+// var user = sessionStorage.getAttribute("TENANTID");
+// console.log(user);
+var idStorage = {
+  fetch: function() {
+    return JSON.parse(sessionStorage.getItem("ID"));
+  }
+};
+var tenantIdStorage = {
+  fetch: function() {
+    return JSON.parse(sessionStorage.getItem("TENANTID"));
+  }
+};
 // @ is an alias to /src
 // import HelloWorld from "@/components/HelloWorld.vue";
 const SIZE = 1 * 1024 * 1024; // 切片大小
@@ -39,16 +45,16 @@ export default {
     // HelloWorld
   },
   data: () => ({
-    // items: storage.fetch(),
     container: {
       file: null
     },
     data: [],
     chunks: 0,
     params: {
-      userId: "9",
-      tenantId: "5",
+      userId: idStorage.fetch()||"9",
+      tenantId: tenantIdStorage.fetch()||"5",
       md5:'',
+      uid:'',
     },
   }),
   methods: {
@@ -128,7 +134,7 @@ export default {
      * @return  {[type]}  [return description]
      */
     async uploadChunks() {
-      let uid = this.createUid(this.params.userId);
+      this.params.uid = this.createUid(this.params.userId);
       const requestList = this.data
         .map(({ file, index }) => {
           const formData = new FormData();
@@ -136,7 +142,6 @@ export default {
           formData.append("file", file);
           formData.append("chunkSize", file.size);
           formData.append("currentChunk", index);
-          formData.append("uid",uid)
           Object.keys(this.params).forEach(key => {
             formData.append(key, this.params[key]);
           });
@@ -217,19 +222,11 @@ export default {
     },
     async mergeRequest() {
       await this.request({
-        url: "https://ys-web.xjmty.com/upload/fileUploadCheck",
+        url: "/transfer/video/multipartUploadCheck"+'?'+this.packageParams(JSON.parse(JSON.stringify(this.params))),
         headers: {
           "Content-type": "application/x-www-form-urlencoded"
         },
-        data: this.packageParams({
-          status: "chunksMerge",
-          name: "d7639694dbfa3f38c6bb2826d0d29d17",
-          chaunks: this.data.length,
-          appCode: "oss",
-          companyId: "onair",
-          userId: "0211243A0D694FBC95A041C82E772EAB",
-          ext: "mp4"
-        })
+        method: "GET",
       });
     }
   },
