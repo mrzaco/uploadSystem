@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 11:13:25
+ * @LastEditTime: 2021-01-27 11:47:26
  * @LastEditors: zy
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -24,6 +24,14 @@
 </template>
 
 <script>
+// var user = sessionStorage.getAttribute("TENANTID");
+// console.log(user);
+var storeKey = "TENANTID";
+var storage = {
+  fetch: function() {
+    return JSON.parse(sessionStorage.getItem(storeKey) || "NOTENANTID");
+  }
+};
 // @ is an alias to /src
 // import HelloWorld from "@/components/HelloWorld.vue";
 const SIZE = 1 * 1024 * 1024; // 切片大小
@@ -33,6 +41,7 @@ export default {
     // HelloWorld
   },
   data: () => ({
+    items: storage.fetch(),
     container: {
       file: null
     },
