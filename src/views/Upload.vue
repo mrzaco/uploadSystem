@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 15:57:08
+ * @LastEditTime: 2021-01-27 16:26:33
  * @LastEditors: cwx
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -149,9 +149,11 @@ export default {
         .map(({ formData, index }) => {
           promiseArr.push(this.doUploadChunk(formData, index));
         });
-      Promise.all(promiseArr).then(() => {
-        this.mergeRequest();
-      }); // 并发切片
+      Promise.all(promiseArr) // 并发切片
+        .then(() => {
+          //会返回一个数组，可以在这里处理没有上传成功的切片
+          this.mergeRequest();
+        });
     },
     /**
      * [doUploadChunk description] 执行每个切片上传
