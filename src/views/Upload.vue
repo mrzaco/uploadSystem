@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 15:02:07
+ * @LastEditTime: 2021-01-27 15:07:32
  * @LastEditors: cwx
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -133,6 +133,7 @@ export default {
      */
     async uploadChunks() {
       this.params.uid = this.createUid(this.params.userId);
+      let promiseArr = [];
       const requestList = this.data
         .map(({ file, index }) => {
           const formData = new FormData();
@@ -146,7 +147,7 @@ export default {
           return { formData, index };
         })
         .map(({ formData, index }) => {
-          this.doUploadChunk(formData, index);
+          promiseArr.push(this.doUploadChunk(formData, index));
         });
       await Promise.all(requestList); // 并发切片
       await this.mergeRequest();
