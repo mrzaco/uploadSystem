@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 13:58:46
+ * @LastEditTime: 2021-01-27 14:43:53
  * @LastEditors: zy
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -24,8 +24,6 @@
 </template>
 
 <script>
-// var user = sessionStorage.getAttribute("TENANTID");
-// console.log(user);
 var idStorage = {
   fetch: function() {
     return JSON.parse(sessionStorage.getItem("ID") || "[]");
