@@ -1,7 +1,7 @@
 /*
  * @Date: 2021-01-26 15:47:24
  * @LastEditors: zy
- * @LastEditTime: 2021-01-27 10:40:40
+ * @LastEditTime: 2021-01-27 16:27:10
  * @FilePath: \uploadSystem\src\plugins\tools.js
  */
 import SparkMD5 from "spark-md5";
@@ -25,16 +25,12 @@ const tool = {
       let spark = new SparkMD5.ArrayBuffer(); //追加数组缓冲区。
       let fileReader = new FileReader(); //读取文件
       fileReader.onload = function(e) {
-        // console.log(e, "e");
         spark.append(e.target.result);
         currentChunk++;
         if (currentChunk < chunks) {
-          console.log(spark.end());
           loadNext();
         } else {
-          console.log(spark.end());
           let md5 = spark.end(); //完成md5的计算，返回十六进制结果。
-          console.log("md5=" + md5);
           resolve(md5);
         }
       };
