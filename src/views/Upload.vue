@@ -1,16 +1,22 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-26 18:18:28
+ * @LastEditTime: 2021-01-27 11:13:25
  * @LastEditors: zy
- * @FilePath: \file-upload\src\views\Upload.vue
- * @Description: 
+ * @FilePath: \uploadSystem\src\views\Upload.vue
+ * @Description:
 -->
 <template>
   <div class="home">
     <div>
       <input type="file" @change="handleFileChange" />
       <el-button @click="handleUpload">上传</el-button>
+    </div>
+    <div>
+      <!-- <div>计算文件 hash</div>
+      <el-progress :percentage="hashPercentage"></el-progress> -->
+      <div>总进度</div>
+      <el-progress :percentage="uploadPercentage"></el-progress>
     </div>
     <!-- <img alt="Vue logo" src="../assets/logo.png" />
     <HelloWorld msg="Welcome to Your Vue.js App" /> -->
@@ -31,10 +37,10 @@ export default {
       file: null
     },
     data: [],
-    md5Code: "",
+    chunks: 0,
     params: {
       userId: "0211243A0D694FBC95A041C82E772EAB",
-      appCode: "appCode",
+      appCode: "oss",
       companyId: "onair",
       type: "video/mp4"
     }
@@ -65,14 +71,21 @@ export default {
      * @param   {[type]}  data         [data description]
      * @param   {[type]}  headers      [headers description]
      * @param   {[type]}  requestList  [requestList description]
-     *
      * @return  {[type]}               [return description]
      */
-    request({ url, method = "post", data, headers = {}, requestList }) {
+    request({
+      url,
+      method = "post",
+      data,
+      headers = {},
+      onProgress = e => e,
+      requestList
+    }) {
       return new Promise(resolve => {
         const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = onProgress;
         xhr.open(method, url);
-        -Object.keys(headers).forEach(key => {
+        Object.keys(headers).forEach(key => {
           xhr.setRequestHeader(key, headers[key]);
         });
         xhr.send(data);
@@ -110,43 +123,107 @@ export default {
      * @return  {[type]}  [return description]
      */
     async uploadChunks() {
-      var myDate = new Date();
-      var mytime = myDate.getTime(); //获取当前时间
       const requestList = this.data
-        .map(({ chunk, hash }) => {
+        .map(({ file, index }) => {
           const formData = new FormData();
-          // formData.append("chunk", chunk);
-          formData.append("file", chunk);
-          formData.append("size", "806251");
-          formData.append("hash", hash);
-          formData.append("userId", "0211243A0D694FBC95A041C82E772EAB");
-          formData.append("appCode", "oss");
-          formData.append("companyId", "onair");
-          formData.append("type", "video/mp4");
-          formData.append("id", hash);
-          formData.append("uniqueSymbol", this.params.userId + mytime);
+          formData.append("chunks", this.data.length);
+          formData.append("file", file);
+          formData.append("chunk", index);
+          formData.append("size", file.size);
           formData.append("md5", this.md5Code);
-          // formData.append("filename", this.container.file.name);
           formData.append("name", this.container.file.name);
-          return { formData };
-        })
-        .map(async ({ formData }) => {
-          this.request({
-            url: "https://ys-web.xjmty.com/upload/fileUpload",
-            method: "POST",
-            data: formData
+          Object.keys(this.params).forEach(key => {
+            formData.append(key, this.params[key]);
           });
+          return { formData, index };
+        })
+        .map(({ formData, index }) => {
+          this.doUploadChunk(formData, index);
         });
       await Promise.all(requestList); // 并发切片
+      await this.mergeRequest();
     },
+    /**
+     * [doUploadChunk description] 执行每个切片上传
+     * @param   {[type]}  formData  [formData description]
+     * @param   {[type]}  index     [index description]
+     * @return  {[type]}            [return description]
+     */
+    async doUploadChunk(formData, index) {
+      this.request({
+        url: "https://ys-web.xjmty.com/upload/fileUpload",
+        method: "POST",
+        data: formData,
+        onProgress: this.createProgressHandler(this.data[index])
+      });
+    },
+    /**
+     * [handleUpload description] 处理上传
+     * @return  {[type]}  [return description]
+     */
     async handleUpload() {
       if (!this.container.file) return;
       const fileChunkList = this.createFileChunk(this.container.file);
       this.data = fileChunkList.map(({ file }, index) => ({
-        chunk: file,
-        hash: this.container.file.name + "-" + index // 文件名+数组下标
+        file: file,
+        chunk: index,
+        index,
+        hash: this.container.file.name + "-" + index, // 文件名+数组下标
+        size: file.size,
+        percentage: 0
       }));
       await this.uploadChunks();
+    },
+    /**
+     * [createProgressHandler description] 创建进度
+     * @param   {[type]}  item  [item description]
+     * @return  {[type]}        [return description]
+     */
+    createProgressHandler(item) {
+      return e => {
+        item.percentage = parseInt(String((e.loaded / e.total) * 100));
+      };
+    },
+    /**
+     * [packageParams description] 组装参数（key/value形式）
+     * @param   {[type]}  data  [data description]
+     * @return  {[type]}        [return description]
+     */
+    packageParams(data) {
+      if (typeof data == "object") {
+        var str = "";
+        for (var key in data) {
+          str += key + "=" + data[key] + "&";
+        }
+        data = str.replace(/&$/, "");
+      }
+      return data;
+    },
+    async mergeRequest() {
+      await this.request({
+        url: "https://ys-web.xjmty.com/upload/fileUploadCheck",
+        headers: {
+          "Content-type": "application/x-www-form-urlencoded"
+        },
+        data: this.packageParams({
+          status: "chunksMerge",
+          name: "d7639694dbfa3f38c6bb2826d0d29d17",
+          chaunks: this.data.length,
+          appCode: "oss",
+          companyId: "onair",
+          userId: "0211243A0D694FBC95A041C82E772EAB",
+          ext: "mp4"
+        })
+      });
+    }
+  },
+  computed: {
+    uploadPercentage() {
+      if (!this.container.file || !this.data.length) return 0;
+      const loaded = this.data
+        .map(item => item.size * item.percentage)
+        .reduce((acc, cur) => acc + cur);
+      return parseInt((loaded / this.container.file.size).toFixed(2));
     }
   }
 };

@@ -1,8 +1,8 @@
 /*
  * @Date: 2021-01-26 15:47:24
  * @LastEditors: zy
- * @LastEditTime: 2021-01-27 09:39:41
- * @FilePath: \file-upload\src\plugins\tools.js
+ * @LastEditTime: 2021-01-27 10:40:40
+ * @FilePath: \uploadSystem\src\plugins\tools.js
  */
 import SparkMD5 from "spark-md5";
 /**
@@ -30,7 +30,7 @@ const tool = {
         currentChunk++;
         if (currentChunk < chunks) {
           console.log(spark.end());
-          loadNext(); 
+          loadNext();
         } else {
           console.log(spark.end());
           let md5 = spark.end(); //完成md5的计算，返回十六进制结果。
