@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 14:34:28
+ * @LastEditTime: 2021-01-27 14:48:41
  * @LastEditors: cwx
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -24,8 +24,6 @@
 </template>
 
 <script>
-// var user = sessionStorage.getAttribute("TENANTID");
-// console.log(user);
 var idStorage = {
   fetch: function() {
     return JSON.parse(sessionStorage.getItem("ID"));
@@ -51,11 +49,11 @@ export default {
     data: [],
     chunks: 0,
     params: {
-      userId: idStorage.fetch()||"9",
-      tenantId: tenantIdStorage.fetch()||"5",
-      md5:'',
-      uid:'',
-    },
+      userId: idStorage.fetch() || "9",
+      tenantId: tenantIdStorage.fetch() || "5",
+      md5: "",
+      uid: ""
+    }
   }),
   methods: {
     handleFileChange(e) {
@@ -216,17 +214,20 @@ export default {
      *
      * @return  {[type]}          [return description]
      */
-    createUid(userId){
-      let timeStamp = (new Date()).getTime();
-      return `${userId}-${timeStamp}`
+    createUid(userId) {
+      let timeStamp = new Date().getTime();
+      return `${userId}-${timeStamp}`;
     },
     async mergeRequest() {
       await this.request({
-        url: "/transfer/video/multipartUploadCheck"+'?'+this.packageParams(JSON.parse(JSON.stringify(this.params))),
+        url:
+          "/transfer/video/multipartUploadCheck" +
+          "?" +
+          this.packageParams(JSON.parse(JSON.stringify(this.params))),
         headers: {
           "Content-type": "application/x-www-form-urlencoded"
         },
-        method: "GET",
+        method: "GET"
       });
     }
   },
