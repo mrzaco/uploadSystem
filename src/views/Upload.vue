@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 11:47:26
+ * @LastEditTime: 2021-01-27 13:58:46
  * @LastEditors: zy
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -16,7 +16,7 @@
       <!-- <div>计算文件 hash</div>
       <el-progress :percentage="hashPercentage"></el-progress> -->
       <div>总进度</div>
-      <el-progress :percentage="uploadPercentage"></el-progress>
+      <el-progress type="circle" :percentage="uploadPercentage"></el-progress>
     </div>
     <!-- <img alt="Vue logo" src="../assets/logo.png" />
     <HelloWorld msg="Welcome to Your Vue.js App" /> -->
@@ -26,10 +26,14 @@
 <script>
 // var user = sessionStorage.getAttribute("TENANTID");
 // console.log(user);
-var storeKey = "TENANTID";
-var storage = {
+var idStorage = {
   fetch: function() {
-    return JSON.parse(sessionStorage.getItem(storeKey) || "NOTENANTID");
+    return JSON.parse(sessionStorage.getItem("ID") || "[]");
+  }
+};
+var tenantIdStorage = {
+  fetch: function() {
+    return JSON.parse(sessionStorage.getItem("TENANTID") || "[]");
   }
 };
 // @ is an alias to /src
@@ -41,7 +45,6 @@ export default {
     // HelloWorld
   },
   data: () => ({
-    items: storage.fetch(),
     container: {
       file: null
     },
@@ -51,7 +54,9 @@ export default {
       userId: "0211243A0D694FBC95A041C82E772EAB",
       appCode: "oss",
       companyId: "onair",
-      type: "video/mp4"
+      type: "video/mp4",
+      ID: idStorage.fetch(),
+      TENANTID: tenantIdStorage.fetch()
     }
   }),
   methods: {
