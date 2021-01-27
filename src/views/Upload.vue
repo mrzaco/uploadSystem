@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 15:21:14
+ * @LastEditTime: 2021-01-27 15:57:08
  * @LastEditors: cwx
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -138,7 +138,7 @@ export default {
         .map(({ file, index }) => {
           const formData = new FormData();
           formData.append("chunks", this.data.length);
-          formData.append("file", file);
+          formData.append("file", file, this.container.file.name);
           formData.append("chunkSize", file.size);
           formData.append("currentChunk", index);
           Object.keys(this.params).forEach(key => {
@@ -149,8 +149,7 @@ export default {
         .map(({ formData, index }) => {
           promiseArr.push(this.doUploadChunk(formData, index));
         });
-      Promise.all(promiseArr).then(result => {
-        console.log(result);
+      Promise.all(promiseArr).then(() => {
         this.mergeRequest();
       }); // 并发切片
     },
