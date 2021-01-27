@@ -1,8 +1,8 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 11:13:25
- * @LastEditors: zy
+ * @LastEditTime: 2021-01-27 11:52:14
+ * @LastEditors: cwx
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
 -->
@@ -40,10 +40,11 @@ export default {
     chunks: 0,
     params: {
       userId: "0211243A0D694FBC95A041C82E772EAB",
+      md5Code:'',
       appCode: "oss",
       companyId: "onair",
       type: "video/mp4"
-    }
+    },
   }),
   methods: {
     handleFileChange(e) {
@@ -53,8 +54,7 @@ export default {
         .md5(file, SIZE)
         .then(res => {
           // 获取到文件的md5
-          console.log("md5=" + res);
-          this.md5Code = res;
+          this.params.md5Code = res;
         })
         .catch(res => {
           // 处理异常
@@ -123,6 +123,7 @@ export default {
      * @return  {[type]}  [return description]
      */
     async uploadChunks() {
+      let uid = this.createUid(this.params.userId);
       const requestList = this.data
         .map(({ file, index }) => {
           const formData = new FormData();
@@ -130,8 +131,9 @@ export default {
           formData.append("file", file);
           formData.append("chunk", index);
           formData.append("size", file.size);
-          formData.append("md5", this.md5Code);
+          formData.append("md5", this.params.md5Code);
           formData.append("name", this.container.file.name);
+          formData.append("uid",uid)
           Object.keys(this.params).forEach(key => {
             formData.append(key, this.params[key]);
           });
@@ -198,6 +200,17 @@ export default {
         data = str.replace(/&$/, "");
       }
       return data;
+    },
+    /**
+     * [createUid description]生成uid
+     *
+     * @param   {[type]}  userId  [userId description]
+     *
+     * @return  {[type]}          [return description]
+     */
+    createUid(userId){
+      let timeStamp = (new Date()).getTime();
+      return `${userId}-${timeStamp}`
     },
     async mergeRequest() {
       await this.request({
