@@ -1,7 +1,7 @@
 <!--
  * @Author: cc
  * @Date: 2021-01-25 10:31:37
- * @LastEditTime: 2021-01-27 13:32:30
+ * @LastEditTime: 2021-01-27 13:52:01
  * @LastEditors: cwx
  * @FilePath: \uploadSystem\src\views\Upload.vue
  * @Description:
@@ -24,14 +24,12 @@
 </template>
 
 <script>
-// var user = sessionStorage.getAttribute("TENANTID");
-// console.log(user);
-var storeKey = "TENANTID";
-var storage = {
-  fetch: function() {
-    return JSON.parse(sessionStorage.getItem(storeKey) || "NOTENANTID");
-  }
-};
+// var storeKey = "TENANTID";
+// var storage = {
+//   fetch: function() {
+//     return JSON.parse(sessionStorage.getItem(storeKey) || "NOTENANTID");
+//   }
+// };
 // @ is an alias to /src
 // import HelloWorld from "@/components/HelloWorld.vue";
 const SIZE = 1 * 1024 * 1024; // 切片大小
@@ -41,18 +39,16 @@ export default {
     // HelloWorld
   },
   data: () => ({
-    items: storage.fetch(),
+    // items: storage.fetch(),
     container: {
       file: null
     },
     data: [],
     chunks: 0,
     params: {
-      userId: "0211243A0D694FBC95A041C82E772EAB",
-      md5Code:'',
-      appCode: "oss",
-      companyId: "onair",
-      type: "video/mp4"
+      userId: "9",
+      tenantId: "5",
+      md5:'',
     },
   }),
   methods: {
@@ -63,7 +59,7 @@ export default {
         .md5(file, SIZE)
         .then(res => {
           // 获取到文件的md5
-          this.params.md5Code = res;
+          this.params.md5 = res;
         })
         .catch(res => {
           // 处理异常
@@ -138,10 +134,8 @@ export default {
           const formData = new FormData();
           formData.append("chunks", this.data.length);
           formData.append("file", file);
-          formData.append("chunk", index);
-          formData.append("size", file.size);
-          formData.append("md5", this.params.md5Code);
-          formData.append("name", this.container.file.name);
+          formData.append("chunkSize", file.size);
+          formData.append("currentChunk", index);
           formData.append("uid",uid)
           Object.keys(this.params).forEach(key => {
             formData.append(key, this.params[key]);
@@ -162,7 +156,7 @@ export default {
      */
     async doUploadChunk(formData, index) {
       this.request({
-        url: "https://ys-web.xjmty.com/upload/fileUpload",
+        url: "/transfer/video/multipartUpload",
         method: "POST",
         data: formData,
         onProgress: this.createProgressHandler(this.data[index])

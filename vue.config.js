@@ -1,13 +1,13 @@
 /*
  * @Author: cc
  * @Date: 2021-01-25 16:38:03
- * @LastEditTime: 2021-01-25 16:38:12
- * @LastEditors: cc
- * @FilePath: \file-upload\vue.config.js
+ * @LastEditTime: 2021-01-27 13:48:11
+ * @LastEditors: cwx
+ * @FilePath: \uploadSystem\vue.config.js
  * @Description:
  */
 const path = require("path");
-
+const devurl = "http://172.16.25.25:56021/";
 function resolve(dir) {
   return path.join(__dirname, dir);
 }
@@ -15,7 +15,7 @@ module.exports = {
   devServer: {
     proxy: {
       "/": {
-        target: "https://sly.trscd.com.cn/",
+        target: devurl,
         changeOrigin: true,
         ws: true,
         secure: false
